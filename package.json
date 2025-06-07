@@ -1,0 +1,36 @@
+{
+  "name": "emoji-optimizer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --minify",
+    "build:css": "postcss ./src/css/input.css -o ./src/dist/style.css --minify",
+    "build": "pnpm build:css && pnpm build:js",
+    "dev:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --watch",
+    "dev:css": "postcss ./src/css/input.css -o ./src/dist/style.css --watch",
+    "dev": "concurrently \"pnpm:dev:css\" \"pnpm:dev:js\" \"pnpm:tauri dev\"",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "alpinejs": "^3.14.9",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.25.5",
+    "postcss": "^8.5.4",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide"
+    ]
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.8",
+    "@tauri-apps/plugin-dialog": "~2.2.2",
+    "@tauri-apps/plugin-fs": "~2.3.0"
+  }
+}
