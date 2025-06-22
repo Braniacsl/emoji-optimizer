@@ -4,12 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --minify",
+    "build:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --format=esm --platform=browser --minify",
     "build:css": "postcss ./src/css/input.css -o ./src/dist/style.css --minify",
     "build": "pnpm build:css && pnpm build:js",
-    "dev:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --watch",
-    "dev:css": "postcss ./src/css/input.css -o ./src/dist/style.css --watch",
-    "dev": "concurrently \"pnpm:dev:css\" \"pnpm:dev:js\" \"pnpm:tauri dev\"",
+    "watch:js": "esbuild src/js/app.js --bundle --outfile=src/dist/bundle.js --watch",
+    "watch:css": "postcss ./src/css/input.css -o ./src/dist/style.css --watch",
+    "dev": "concurrently \"pnpm:watch:*\" \"pnpm:tauri dev\"",
     "tauri": "tauri"
   },
   "devDependencies": {

@@ -6,81 +6,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Editor Slate</title>
   <link rel="stylesheet" href="dist/style.css">
-  <script src="dist/bundle.js" defer></script>
-  <!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script> -->
-  <!-- <script src="/js/alpine.min.js" defer></script> -->
+  <script type="module" src="dist/bundle.js" defer></script>
+
   <style>
-    /* Forcing Inter font if Tailwind CDN doesn't pick it up well */
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* Ensure image respects container bounds and filter transition */
-    .image-display img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      transition: filter 0.3s ease-in-out;
-    }
-
-    .yellow-filter {
-      /* A more distinct yellow filter */
-      filter: sepia(70%) hue-rotate(-50deg) saturate(300%) contrast(110%) brightness(100%);
+    [x-cloak] {
+      display: none !important;
     }
   </style>
 </head>
 
-<body class="bg-gray-900 text-gray-100 flex h-screen antialiased overflow-hidden">
+<body class="flex flex-col h-screen bg-white">
+  <nav class="flex items-center justify-between px-6 py-2 bg-white shadow-md" data-tauri-drag-region>
+    <div class="flex items-center space-x-6">
+      <!-- THE PART THAT REQUIRES ATTENTION -->
+      <div x-data="fileDropdown" @keydown.escape.prevent.stop="close($refs.button)"
+        @focusin.window="! $refs.panel.contains($event.target) && close()" x-id="['dropdown-button']" class="relative">
+        <button x-ref="button" @click="toggle()" class="text-gray-800 hover:text-sky-500 font-bold uppercase text-lg"
+          :aria-expanded="open" :aria-controls="$id('dropdown-button')" type="button">File</button>
 
-  <div x-data="imageEditor" class="flex flex-1">
-
-    <aside class="w-64 bg-gray-800 p-6 space-y-6 shadow-lg flex flex-col">
-      <h1 class="text-2xl font-semibold text-sky-400">Toolbar</h1>
-
-      <button @click="openImage()"
-        class="w-full bg-sky-500 hover:bg-sky-600 text-white font-medium py-2.5 px-4 rounded-lg shadow-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75">
-        Open Image
-      </button>
-
-      <button @click="toggleYellowFilter()"
-        :class="{ 'bg-yellow-500 hover:bg-yellow-600': yellowFilterApplied, 'bg-gray-600 hover:bg-gray-700': !yellowFilterApplied }"
-        class="w-full text-white font-medium py-2.5 px-4 rounded-lg shadow-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-opacity-75"
-        :focus:ring-yellow-400="yellowFilterApplied" :focus:ring-gray-500="!yellowFilterApplied">
-        <span x-text="yellowFilterApplied ? 'Remove Yellow Filter' : 'Apply Yellow Filter'"></span>
-      </button>
-
-      <div class="mt-auto pt-6 border-t border-gray-700">
-        <h2 class="text-lg font-semibold text-sky-400 mb-2">Components</h2>
-        <div id="component-placeholder" class="text-sm text-gray-400">
-          Future components will appear here.
+        <div x-ref="panel" x-show="open" x-transition.origin.top.left x-on:click.outside="close($refs.button)"
+          :id="$id('dropdown-button')" x-cloak
+          class="absolute left-0 min-w-48 rounded-lg shadow-lg mt-2 z-10 origin-top-left p-1.5 outline-none bg-white border border-gray-200">
+          <button @click="open_image()"
+            class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Open</button>
+          <button @click=""
+            class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
+          <button @click=""
+            class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Save
+            As</button>
+          <button @click=""
+            class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Export</button>
+          <button @click=""
+            class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Settings</button>
         </div>
+      </div>
+      <!-- End of part that requires attention -->
+      <div class="h-8 w-px bg-gray-300"></div>
+      <a href="#" class="text-gray-800 hover:text-sky-500 font-bold uppercase text-lg">Edit</a>
+      <div class="h-8 w-px bg-gray-300"></div>
+      <a href="#" class="text-gray-800 hover:text-sky-500 font-bold uppercase text-lg">View</a>
+    </div>
+    <h1 class="font-bold text-3xl">Emoji Optimizer</h1>
+    <div class="flex items-center space-x-4">
+      <button id="minimize-btn" class="p-2 rounded-full hover:bg-gray-200">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+      <button id="maximize-btn" class="p-2 rounded-full hover:bg-gray-200">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+          </path>
+        </svg>
+      </button>
+      <button id="close-btn" class="p-2 rounded-full hover:bg-red-500 hover:text-white">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="flex flex-1 overflow-hidden">
+    <aside class="w-72 bg-gray-800 p-6 flex flex-col space-y-8">
+      <div class="flex flex-col space-y-4">
+        <h2 class="text-sky-400 font-bold uppercase text-4xl">Layers</h2>
+
+        <div
+          class="flex flex-col space-y-4 bg-gray-700 p-4 rounded-lg overflow-y-scroll max-h-[14rem] [&>*]:flex-shrink-0">
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+          <div class="h-12 bg-sky-500 rounded-md"></div>
+        </div>
+      </div>
+
+      <hr class="border-gray-600" />
+
+      <div class="flex flex-col space-y-6">
+        <button class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
+          <u>Toggle Grid</u>
+        </button>
+        <button class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
+          <u>Create Layer</u>
+        </button>
+        <button class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
+          <u>Remove Layer</u>
+        </button>
       </div>
     </aside>
 
-    <main class="flex-1 bg-gray-900 p-8 flex justify-center items-center overflow-auto">
-      <div x-show="imageUrl" class="image-display w-full h-full flex justify-center items-center"
-        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95"
-        x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 transform scale-100"
-        x-transition:leave-end="opacity-0 transform scale-95">
-        <img :src="imageUrl" alt="Selected Image" :class="{ 'yellow-filter': yellowFilterApplied }"
-          class="rounded-lg shadow-2xl">
+    <main x-data="imageViewer" class="flex-1 bg-gray-900 p-8 flex justify-center items-center overflow-auto">
+      <div class="w-full h-full flex justify-center items-center">
+        <template x-if="imageUrl">
+          <!-- This viewport remains the same -->
+          <div x-ref="imageDisplay"
+            class="w-full h-full flex items-center justify-center overflow-hidden relative bg-black/20"
+            @wheel.prevent="handleWheel" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform scale-95"
+            x-transition:enter-end="opacity-100 transform scale-100">
+
+            <img x-ref="image" :src="imageUrl" alt="Selected Image"
+              class="block max-w-full max-h-full self-center transition-transform duration-150 ease-out"
+              :style="`transform: scale(${zoom});`" style="image-rendering: pixelated; image-rendering: crisp-edges;">
+
+            <!-- UI Controls remain the same -->
+            <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+              <button @click="zoomIn"
+                class="bg-gray-800/80 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-700 transition">+</button>
+              <button @click="zoomOut"
+                class="bg-gray-800/80 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-700 transition">-</button>
+              <button @click="resetZoom()"
+                class="bg-gray-800/80 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-700 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="!imageUrl">
+          <div class="text-center text-gray-500">
+            <svg class="w-24 h-24 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+              </path>
+            </svg>
+            <p class="text-xl">No image selected.</p>
+            <p class="text-sm">Click "Open Image" in the toolbar to select an image.</p>
+          </div>
+        </template>
       </div>
-      <div x-show="!imageUrl" class="text-center text-gray-500">
-        <svg class="w-24 h-24 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-          </path>
-        </svg>
-        <p class="text-xl">No image selected.</p>
-        <p class="text-sm">Click "Open Image" in the toolbar to select an image.</p>
-      </div>
+
       <div x-show="errorMessage" x-text="errorMessage"
         class="fixed bottom-5 right-5 bg-red-500 text-white p-3 rounded-lg shadow-xl" x-transition></div>
     </main>
   </div>
-
 </body>
 
 </html>

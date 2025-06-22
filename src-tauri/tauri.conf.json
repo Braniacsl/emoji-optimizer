@@ -4,15 +4,18 @@
   "version": "0.1.0",
   "identifier": "com.emoji-optimizer.app",
   "build": {
+    "beforeDevCommand": "pnpm build",
+    "beforeBuildCommand": "pnpm build",
     "frontendDist": "../src"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "emoji-optimizer",
-        "width": 1000,
-        "height": 700
+        "width": 1920,
+        "height": 1080,
+        "decorations": false,
+        "transparent": true
       }
     ],
     "security": {
