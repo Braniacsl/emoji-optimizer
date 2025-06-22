@@ -1,8 +1,8 @@
 [package]
 name = "emoji-optimizer"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "An emoji Optimizer. Analyze and count specific pixels to optimize space and image dynamism."
+authors = ["braniacs"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
