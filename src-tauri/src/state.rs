@@ -1,15 +1,16 @@
 use image::{Rgba, RgbaImage};
-use tauri::async_runtime::Mutex;
+use std::sync::{Arc, Mutex as StdMutex};
+use tokio::sync::Mutex as TokioMutex;
 
 pub struct AppState {
-    pub image_manager: Mutex<ImageManager>,
+    pub image_manager: TokioMutex<ImageManager>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct ImageManager {
     pub width: u32,
     pub height: u32,
-    pub layers: Vec<Layer>,
+    pub layers: Vec<Arc<StdMutex<Layer>>>,
     pub next_layer_id: u32,
 }
 
@@ -19,7 +20,10 @@ pub struct Layer {
     pub name: String,
     pub buffer: RgbaImage,
     pub position: Point,
+    pub width: u32,
+    pub height: u32,
     pub is_visible: bool,
+    pub grid: GridOptions,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -28,10 +32,12 @@ pub struct Point {
     pub y: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GridOptions {
+    pub is_visible: bool,
     pub line_color: Rgba<u8>,
     pub line_thickness: u32,
+    pub cell_count: u32,
     pub cell_width: u32,
     pub cell_height: u32,
 }

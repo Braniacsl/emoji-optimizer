@@ -1,16 +1,5 @@
-import { listen } from '@tauri-apps/api/event';
-
 export const imageViewer = () => ({
-  imageUrl: '',
-  errorMessage: '',
-
   zoom: 1,
-
-  async init() {
-    await listen('image-updated', (event) => {
-      this.imageUrl = event.payload;
-    });
-  },
 
   handleWheel(event) {
     const scaleAmount = -event.deltaY > 0 ? 1.1 : 1 / 1.1;

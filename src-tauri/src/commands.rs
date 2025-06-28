@@ -1,10 +1,16 @@
-use base64::{engine::general_purpose, Engine as _};
+use base64::{encode, engine::general_purpose, Engine as _};
 use image::{ImageFormat, RgbaImage};
 use log::{error, info};
-use std::io::Cursor;
+use std::{
+    io::Cursor,
+    sync::{Arc, Mutex},
+};
 use tauri::{AppHandle, Emitter as _, State};
 
-use crate::state::AppState;
+use crate::{
+    constants,
+    state::{AppState, Layer},
+};
 
 fn encode_and_emit(final_image: RgbaImage, app_handle: AppHandle) {
     info!("[Blocking task] Starting PNG and Base64 encoding...");
@@ -45,8 +51,7 @@ pub async fn open_image(
 
     let img: RgbaImage = file.to_rgba8();
 
-    let rendered_image: RgbaImage;
-
+    let final_image: RgbaImage;
     {
         let mut image_manager = state.image_manager.lock().await;
 
@@ -54,16 +59,53 @@ pub async fn open_image(
             .add_layer_from_image(img, path, Default::default())
             .map_err(|e| format!("Failed to open image: {}", e))?;
 
-        rendered_image = image_manager.render();
+        final_image = image_manager.render()?;
     }
 
     tokio::spawn(async move {
         if let Err(e) =
-            tokio::task::spawn_blocking(move || encode_and_emit(rendered_image, app_handle)).await
+            tokio::task::spawn_blocking(move || encode_and_emit(final_image, app_handle)).await
         {
             error!("Error in spawned blocking task: {}", e);
         }
     });
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn toggle_grid(
+    state: State<'_, AppState>,
+    app_handle: AppHandle,
+    active_layer: usize,
+) -> Result<(), String> {
+    info!("[toggle_grid]: toggled for layer {}", active_layer);
+
+    let layer_mutex: Arc<Mutex<Layer>>;
+    {
+        let manager = state.image_manager.lock().await;
+        let Some(mutex_clone) = manager.layers.get(active_layer).cloned() else {
+            return Err(format!("Layer {} does not exist", active_layer));
+        };
+
+        layer_mutex = mutex_clone;
+    }
+
+    tokio::task::spawn_blocking(move || {
+        let mut layer = layer_mutex.lock().unwrap();
+
+        layer.grid.is_visible = !layer.grid.is_visible;
+
+        layer.render();
+    })
+    .await
+    .map_err(|e| format!("[toggle_grid] Error rendering layer: {}", e))?;
+
+    let image_manager = state.image_manager.lock().await;
+
+    let final_image = image_manager.render()?;
+
+    encode_and_emit(final_image, app_handle);
 
     Ok(())
 }

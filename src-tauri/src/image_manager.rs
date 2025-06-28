@@ -1,6 +1,8 @@
 use image::{imageops, Rgba, RgbaImage};
+use log::info;
+use std::sync::{Arc, Mutex as StdMutex};
 
-use crate::state::{ImageManager, Layer, Point};
+use crate::state::{GridOptions, ImageManager, Layer, Point};
 use anyhow::{anyhow, Result};
 
 impl ImageManager {
@@ -13,23 +15,26 @@ impl ImageManager {
         }
     }
 
-    pub fn render(&self) -> RgbaImage {
-        let mut canvas = RgbaImage::from_pixel(self.width, self.height, Rgba([0, 0, 0, 0]));
+    pub fn render(&self) -> Result<RgbaImage, String> {
+        info!("[ImageManager] Rendering final image.");
 
-        for layer in &self.layers {
-            if !layer.is_visible {
-                continue;
+        let mut canvas = RgbaImage::new(self.width, self.height);
+
+        for layer in self.layers.iter() {
+            let layer = layer.lock().unwrap();
+            if layer.is_visible {
+                imageops::overlay(
+                    &mut canvas,
+                    &layer.buffer,
+                    layer.position.x as i64,
+                    layer.position.y as i64,
+                );
             }
-
-            imageops::overlay(
-                &mut canvas,
-                &layer.buffer,
-                layer.position.x as i64,
-                layer.position.y as i64,
-            );
         }
 
-        canvas
+        info!("[ImageManager] Render complete.");
+
+        Ok(canvas)
     }
 
     pub fn save_layer(&self, layer_id: u32, path: &str) -> Result<(), image::ImageError> {
@@ -53,13 +58,16 @@ impl ImageManager {
             imageops::FilterType::Lanczos3,
         );
 
-        self.layers.push(Layer {
+        self.layers.push(Arc::new(StdMutex::new(Layer {
             id: curr_id,
             name,
             buffer: resized_buffer,
             position,
+            width: self.width,
+            height: self.height,
             is_visible: true,
-        });
+            grid: GridOptions::new(self.width, self.height),
+        })));
 
         Ok(curr_id)
     }

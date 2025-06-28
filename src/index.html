@@ -18,7 +18,6 @@
 <body class="flex flex-col h-screen bg-white">
   <nav class="flex items-center justify-between px-6 py-2 bg-white shadow-md" data-tauri-drag-region>
     <div class="flex items-center space-x-6">
-      <!-- THE PART THAT REQUIRES ATTENTION -->
       <div x-data="fileDropdown" @keydown.escape.prevent.stop="close($refs.button)"
         @focusin.window="! $refs.panel.contains($event.target) && close()" x-id="['dropdown-button']" class="relative">
         <button x-ref="button" @click="toggle()" class="text-gray-800 hover:text-sky-500 font-bold uppercase text-lg"
@@ -40,7 +39,6 @@
             class="px-2 lg:py-1.5 py-2 w-full flex items-center rounded-md transition-colors text-left text-gray-800 hover:bg-gray-700 hover:text-white focus-visible:bg-gray-700 focus-visible:text-white disabled:opacity-50 disabled:cursor-not-allowed">Settings</button>
         </div>
       </div>
-      <!-- End of part that requires attention -->
       <div class="h-8 w-px bg-gray-300"></div>
       <a href="#" class="text-gray-800 hover:text-sky-500 font-bold uppercase text-lg">Edit</a>
       <div class="h-8 w-px bg-gray-300"></div>
@@ -90,8 +88,9 @@
 
       <hr class="border-gray-600" />
 
-      <div class="flex flex-col space-y-6">
-        <button class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
+      <div x-data="toolbox" class="flex flex-col space-y-6">
+        <button @click="toggleGrid()"
+          class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
           <u>Toggle Grid</u>
         </button>
         <button class="w-full py-3 bg-sky-500 text-white font-bold rounded-lg hover:bg-sky-600 transition-colors">
@@ -105,19 +104,17 @@
 
     <main x-data="imageViewer" class="flex-1 bg-gray-900 p-8 flex justify-center items-center overflow-auto">
       <div class="w-full h-full flex justify-center items-center">
-        <template x-if="imageUrl">
-          <!-- This viewport remains the same -->
+        <template x-if="$store.imageManager.imageUrl">
           <div x-ref="imageDisplay"
             class="w-full h-full flex items-center justify-center overflow-hidden relative bg-black/20"
             @wheel.prevent="handleWheel" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform scale-95"
             x-transition:enter-end="opacity-100 transform scale-100">
 
-            <img x-ref="image" :src="imageUrl" alt="Selected Image"
+            <img x-ref="image" :src="$store.imageManager.imageUrl" alt="Selected Image"
               class="block max-w-full max-h-full self-center transition-transform duration-150 ease-out"
               :style="`transform: scale(${zoom});`" style="image-rendering: pixelated; image-rendering: crisp-edges;">
 
-            <!-- UI Controls remain the same -->
             <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
               <button @click="zoomIn"
                 class="bg-gray-800/80 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-gray-700 transition">+</button>
@@ -135,7 +132,7 @@
           </div>
         </template>
 
-        <template x-if="!imageUrl">
+        <template x-if="!$store.imageManager.imageUrl">
           <div class="text-center text-gray-500">
             <svg class="w-24 h-24 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -148,7 +145,7 @@
         </template>
       </div>
 
-      <div x-show="errorMessage" x-text="errorMessage"
+      <div x-show="$store.imageManager.errorMessage" x-text="errorMessage"
         class="fixed bottom-5 right-5 bg-red-500 text-white p-3 rounded-lg shadow-xl" x-transition></div>
     </main>
   </div>
